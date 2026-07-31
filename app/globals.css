@@ -5,7 +5,7 @@
 * { box-sizing:border-box; }
 body { margin:0; color:var(--ink); background-color:#ebe4ca; background-image:radial-gradient(#d2c8a6 1px,transparent 1px); background-size:8px 8px; font-family:"Archivo Black",Arial,sans-serif; }
 button { font:inherit; }
-.game-shell { width:min(100%,650px); min-height:100vh; margin:auto; padding:28px 24px 34px; position:relative; overflow:hidden; background:var(--cream); border-inline:4px solid var(--ink); box-shadow:0 0 40px #665d3e44; }
+.game-shell { width:min(100%,700px); min-height:100vh; margin:auto; padding:28px 24px 34px; position:relative; overflow:hidden; background:var(--cream); border-inline:4px solid var(--ink); box-shadow:0 0 40px #665d3e44; }
 .game-shell:before { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(135deg,transparent 48%,#ff3d9910 49%,#ff3d9910 51%,transparent 52%); background-size:44px 44px; }
 header { text-align:center; position:relative; z-index:1; }
 .eyebrow { display:flex; align-items:center; justify-content:center; gap:10px; font-size:9px; letter-spacing:3px; }
@@ -22,20 +22,22 @@ h1 span { color:var(--pink); }
 .cabinet { position:relative; padding:17px; background:#29284c; border:4px solid var(--ink); border-radius:10px; box-shadow:7px 7px 0 var(--pink),11px 11px 0 var(--ink); }
 .cabinet-top { display:flex; align-items:center; justify-content:center; gap:12px; height:22px; color:var(--yellow); font:8px "Press Start 2P"; letter-spacing:1px; }
 .cabinet-top i { width:6px; height:6px; border-radius:50%; background:var(--pink); box-shadow:0 0 8px var(--pink); }
-.board { display:grid; grid-template-columns:repeat(8,1fr); gap:5px; padding:9px; aspect-ratio:1; background:#0d0c22; border:3px solid #7773ad; box-shadow:inset 0 0 24px #000; }
+.play-layout { display:grid; grid-template-columns:minmax(0,1fr) 102px; gap:16px; align-items:start; }
+.falling-board { display:grid; grid-template-columns:repeat(10,1fr); grid-template-rows:repeat(16,1fr); gap:3px; padding:8px; aspect-ratio:10/16; width:min(100%,390px); margin:auto; background:#0d0c22; border:3px solid #7773ad; box-shadow:inset 0 0 24px #000; }
 .cell { min-width:0; border:1px solid #3c3967; border-radius:3px; background:#211f42; box-shadow:inset 2px 2px 0 #302e58; cursor:pointer; transition:.08s; }
-.cell:hover { border-color:#8c87ce; }
-.cell.filled,.cell.preview { border:2px solid #151433; box-shadow:inset 3px 3px 0 #ffffff66,inset -3px -3px 0 #0003,0 0 8px currentColor; }
-.cell.preview { opacity:.5; }
+.cell.filled { border:2px solid #151433; box-shadow:inset 3px 3px 0 #ffffff66,inset -3px -3px 0 #0003,0 0 8px currentColor; }
 .pink { background:#ff3d9a!important; color:#ff3d9a; }.cyan { background:#28e8e0!important;color:#28e8e0;}.yellow { background:#ffe14b!important;color:#ffe14b;}.purple { background:#9e62ff!important;color:#9e62ff;}.lime { background:#8cf03e!important;color:#8cf03e;}
-.tray { margin:22px 7px 0; border:3px solid var(--ink); background:#fff; box-shadow:5px 5px 0 var(--cyan); position:relative; padding:18px 10px 11px; }
-.tray-label { position:absolute; left:50%; top:-11px; transform:translateX(-50%) rotate(-1deg); white-space:nowrap; padding:4px 12px; background:var(--pink); color:white; border:2px solid var(--ink); font:8px "Press Start 2P"; }
-.pieces { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-.piece { min-height:78px; display:grid; place-items:center; background:#f2edda; border:2px dashed #aaa080; cursor:pointer; transition:.15s; }
-.piece:hover,.piece.selected { transform:translateY(-5px) rotate(-2deg); background:#fff; border:3px solid var(--pink); box-shadow:4px 4px 0 var(--ink); }
-.mini-grid { display:grid; gap:3px; width:52px; height:52px; place-content:center; }
-.mini-grid i { width:16px; height:16px; border:2px solid var(--ink); box-shadow:inset 2px 2px #ffffff88; }
-.mini-grid i.blank { visibility:hidden; }
+.next-box { border:3px solid var(--ink); background:white; box-shadow:5px 5px 0 var(--cyan); text-align:center; padding:12px 8px; }
+.next-box>span,.next-box small { display:block; font:7px "Press Start 2P"; }
+.next-grid { display:grid; grid-template-columns:repeat(4,16px); grid-template-rows:repeat(3,16px); justify-content:center; gap:2px; min-height:64px; margin:13px 0 18px; }
+.next-grid i { width:16px; height:16px; border:2px solid var(--ink); box-shadow:inset 2px 2px #ffffff88; }
+.next-box strong { display:block; margin-top:8px; color:var(--pink); font:22px "Press Start 2P"; }
+.controls { width:min(100%,490px); margin:20px auto 0; display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+.controls button { min-height:52px; border:3px solid var(--ink); background:white; box-shadow:4px 4px 0 var(--ink); font-size:23px; color:var(--ink); cursor:pointer; touch-action:manipulation; user-select:none; }
+.controls button:active { transform:translate(3px,3px); box-shadow:1px 1px var(--ink); }
+.controls .rotate-btn { background:var(--cyan); }
+.controls .down-btn { background:var(--yellow); }
+.controls .drop-btn { grid-column:span 4; min-height:42px; color:white; background:var(--pink); font:10px "Press Start 2P"; }
 .new-game { display:block; margin:22px auto 10px; padding:10px 18px; border:3px solid var(--ink); background:var(--yellow); box-shadow:4px 4px 0 var(--ink); cursor:pointer; font-size:12px; transform:rotate(-1deg); }
 .new-game:active { transform:translate(3px,3px); box-shadow:1px 1px var(--ink); }
 .hint { margin:0; text-align:center; font-size:10px; letter-spacing:.3px; }
@@ -49,10 +51,13 @@ h1 span { color:var(--pink); }
 .modal-card button { padding:12px 22px; color:white; background:var(--pink); border:3px solid var(--ink); box-shadow:4px 4px var(--ink); cursor:pointer; }
 @media (max-width:500px) {
   .game-shell { padding:20px 13px 26px; border:0; }
-  .board { gap:3px; padding:6px; }
+  .falling-board { gap:2px; padding:5px; }
   .cabinet { padding:10px; box-shadow:5px 5px 0 var(--pink),8px 8px 0 var(--ink); }
   .score-row { grid-template-columns:1fr 70px 1fr; gap:6px; }
   .score-box { padding-inline:4px; }
   .sticker-one { display:none; }
+  .play-layout { grid-template-columns:minmax(0,1fr) 76px; gap:8px; }
+  .next-grid { grid-template-columns:repeat(4,12px); grid-template-rows:repeat(3,12px); }
+  .next-grid i { width:12px; height:12px; }
 }
 @media (prefers-reduced-motion:reduce) { * { transition:none!important; } }
