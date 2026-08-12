@@ -1,19 +1,30 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+const previewImage = siteUrl ? `${siteUrl}/muscle-anatomy-front.png` : "/muscle-anatomy-front.png";
+
 export const metadata: Metadata = {
-  title: "Pixel Drop! — падающие блоки",
-  description: "Неоновая аркада с падающими блоками в стиле 90-х.",
+  title: "Muscle Index — интерактивная карта мышц",
+  description:
+    "Нажимайте на мышцы человека, изучайте их функции и находите упражнения в прокручиваемом анатомическом каталоге.",
   openGraph: {
-    title: "Pixel Drop!",
-    description: "Двигай, крути и взрывай линии в неоновой аркаде.",
-    images: ["https://pixel-pop-90s.sage-civet-0454.chatgpt.site/og.png"],
+    title: "Muscle Index — карта мышц человека",
+    description: "35 мышц с функциями, техникой и упражнениями.",
+    images: [
+      {
+        url: previewImage,
+        width: 1672,
+        height: 941,
+        alt: "Интерактивная карта мышц человека",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pixel Drop!",
-    description: "Двигай, крути и взрывай линии в неоновой аркаде.",
-    images: ["https://pixel-pop-90s.sage-civet-0454.chatgpt.site/og.png"],
+    title: "Muscle Index — карта мышц человека",
+    description: "35 мышц с функциями, техникой и упражнениями.",
+    images: [previewImage],
   },
 };
 
