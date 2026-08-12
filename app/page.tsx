@@ -8,6 +8,7 @@ type Zone = "Голова и шея" | "Верх тела" | "Кор" | "Низ 
 type Side = "left" | "right";
 type BodyType = "male" | "female";
 type BodyView = "front" | "back";
+type Theme = "dark" | "light";
 
 const publicAsset = (file: string) => `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/${file}`;
 
@@ -100,6 +101,8 @@ export default function Home() {
   const [trainingMode, setTrainingMode] = useState<TrainingMode>("home");
   const [bodyType, setBodyType] = useState<BodyType>("male");
   const [bodyView, setBodyView] = useState<BodyView>("front");
+  const [theme, setTheme] = useState<Theme>("dark");
+  const [bodyZoom, setBodyZoom] = useState(1);
   const dragStartX = useRef<number | null>(null);
 
   const selected = muscles.find((muscle) => muscle.id === selectedId) ?? muscles[0];
@@ -159,6 +162,30 @@ export default function Home() {
     return 50 + (x - 50) * scale;
   }
 
+  function chooseNearestHotspot(event: React.MouseEvent<HTMLDivElement>) {
+    // Overlapping anatomical hit areas stay accurate on compact screens by
+    // selecting the muscle whose visual centre is closest to the tap.
+    if (event.detail === 0) return;
+    const hotspots = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>(".body-hotspot"));
+    let nearest: HTMLButtonElement | undefined;
+    let nearestDistance = Number.POSITIVE_INFINITY;
+
+    for (const hotspot of hotspots) {
+      const rect = hotspot.getBoundingClientRect();
+      const distance = Math.hypot(event.clientX - (rect.left + rect.width / 2), event.clientY - (rect.top + rect.height / 2));
+      if (distance < nearestDistance) {
+        nearest = hotspot;
+        nearestDistance = distance;
+      }
+    }
+
+    const id = nearest?.dataset.muscleId;
+    if (!id) return;
+    event.preventDefault();
+    event.stopPropagation();
+    choose(id);
+  }
+
   function handlePosterPointerDown(event: React.PointerEvent<HTMLElement>) {
     if ((event.target as HTMLElement).closest("button, a, input, iframe")) return;
     dragStartX.current = event.clientX;
@@ -204,7 +231,7 @@ export default function Home() {
   }
 
   return (
-    <main className="anatomy-site">
+    <main className={`anatomy-site theme-${theme}`}>
       <header className="anatomy-nav">
         <a href="#poster" className="index-logo" aria-label={lang === "ru" ? "К анатомическому плакату" : "Go to the anatomy poster"}>
           <span>MI</span>
@@ -216,6 +243,14 @@ export default function Home() {
           <a href="#details">{words.training}</a>
         </nav>
         <div className="nav-tools">
+          <button
+            className="theme-toggle"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label={theme === "dark" ? words.lightTheme : words.darkTheme}
+            title={theme === "dark" ? words.lightTheme : words.darkTheme}
+          >
+            <span aria-hidden="true">{theme === "dark" ? "☀" : "☾"}</span>
+          </button>
           <div className="language-toggle" aria-label={lang === "ru" ? "Выбор языка" : "Language selection"}>
             <button className={lang === "ru" ? "active" : ""} onClick={() => setLang("ru")} aria-pressed={lang === "ru"}>RU</button>
             <button className={lang === "en" ? "active" : ""} onClick={() => setLang("en")} aria-pressed={lang === "en"}>EN</button>
@@ -224,7 +259,7 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="anatomy-poster" id="poster" onPointerDown={handlePosterPointerDown} onPointerUp={handlePosterPointerUp} onPointerCancel={() => { dragStartX.current = null; }}>
+      <section className="anatomy-poster" id="poster" style={{ "--body-zoom": bodyZoom } as React.CSSProperties} onPointerDown={handlePosterPointerDown} onPointerUp={handlePosterPointerUp} onPointerCancel={() => { dragStartX.current = null; }}>
         <div className="poster-art">
           <Image
             key={poseKey}
@@ -248,12 +283,17 @@ export default function Home() {
             <button className={bodyView === "front" ? "active" : ""} onClick={() => changeBodyView("front")} aria-pressed={bodyView === "front"}>{words.front}</button>
             <button className={bodyView === "back" ? "active" : ""} onClick={() => changeBodyView("back")} aria-pressed={bodyView === "back"}>{words.back}</button>
           </div>
+          <div className="body-zoom" aria-label={words.zoom}>
+            <button onClick={() => setBodyZoom((value) => Math.max(.84, Number((value - .08).toFixed(2))))} disabled={bodyZoom <= .84} aria-label={words.zoomOut}>−</button>
+            <span>{Math.round(bodyZoom * 100)}%</span>
+            <button onClick={() => setBodyZoom((value) => Math.min(1.16, Number((value + .08).toFixed(2))))} disabled={bodyZoom >= 1.16} aria-label={words.zoomIn}>+</button>
+          </div>
           <small>↔ {words.rotateHint}</small>
         </div>
 
         <div className="poster-heading">
           <span>{bodyView === "front" ? words.surface : words.posterior}</span>
-          <h1>{words.mapA}<br />{words.mapB}</h1>
+          <h1>{words.mapA}<br />{" "}{words.mapB}</h1>
           <p>{words.click}</p>
         </div>
 
@@ -276,12 +316,13 @@ export default function Home() {
         ))}
 
         <div className="body-map-layer">
-          <div className="body-hotspots" aria-label={lang === "ru" ? "Мышцы на теле" : "Muscles on the body"}>
+          <div className="body-hotspots" onClickCapture={chooseNearestHotspot} aria-label={lang === "ru" ? "Мышцы на теле" : "Muscles on the body"}>
             {posterMuscles.map((muscle) => {
               const hotspot = hotspotFor(muscle);
               return (
                 <button
                   key={`${poseKey}-${muscle.id}`}
+                  data-muscle-id={muscle.id}
                   className={`body-hotspot shape-${glowShapeFor(muscle.id)} ${selectedId === muscle.id ? "active" : ""} ${hotspot[0] > 55 ? "tooltip-left" : ""}`}
                   style={{
                     left: `${hotspot[0]}%`,

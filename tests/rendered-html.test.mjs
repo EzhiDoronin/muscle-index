@@ -33,6 +33,8 @@ test("server-renders the interactive muscle atlas", async () => {
   assert.match(html, /aria-label="Тип тела"/);
   assert.match(html, /aria-label="Сторона тела"/);
   assert.match(html, /aria-label="Выбор языка"/);
+  assert.match(html, /aria-label="Включить светлую тему"/);
+  assert.match(html, /aria-label="Масштаб тела"/);
   assert.match(html, /aria-label="Мышцы на теле"/);
   assert.match(html, /Ещё видео по теме/);
   assert.doesNotMatch(html, /<iframe/i);
