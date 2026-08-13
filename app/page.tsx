@@ -98,17 +98,12 @@ export default function Home() {
   const selectedVideo = trainingMode === "home" ? homePlan.video : videoFor(selected.id);
   const relatedVideos = relatedVideosFor(selected.id, selectedVideo.id);
   const tutorial = tutorialFor(selected, lang, selectedCue, [...selectedExercises], trainingMode);
-  const backPose = bodyView === "back" ? backViewProfiles[selected.id] : undefined;
   const poseKey = `${bodyType}-${bodyView}`;
   const bodyImage = bodyView === "back"
     ? publicAsset(`muscle-anatomy-${bodyType}-back.webp`)
     : bodyType === "female"
       ? publicAsset("muscle-anatomy-female-front.webp")
       : publicAsset("muscle-anatomy-front.webp");
-  const rawTargetX = backPose?.target[0] ?? selected.targetX;
-  const targetY = backPose?.target[1] ?? selected.targetY;
-  const targetX = bodyType === "female" ? femaleAdjustedX(rawTargetX, targetY) : rawTargetX;
-  const glow = backPose?.glow ?? glowProfiles[selected.id] ?? [64, 100, 0];
   const posterMuscles = bodyView === "back" ? muscles.filter((muscle) => backMuscleIds.has(muscle.id)) : muscles.filter((muscle) => !backOnlyMuscleIds.has(muscle.id));
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -141,9 +136,9 @@ export default function Home() {
   }
 
   function handlePosterPointerDown(event: React.PointerEvent<HTMLElement>) {
-    if ((event.target as HTMLElement).closest(".body-controls, .poster-selection, .callout, .poster-scroll")) return;
+    if ((event.target as HTMLElement).closest(".body-controls, .poster-selection, .callout, .poster-scroll, .body-hotspot")) return;
     dragStart.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
-    event.currentTarget.setPointerCapture(event.pointerId);
+    if (event.pointerType !== "touch") event.currentTarget.setPointerCapture(event.pointerId);
   }
 
   function handlePosterPointerUp(event: React.PointerEvent<HTMLElement>) {
@@ -160,6 +155,29 @@ export default function Home() {
   }
 
   function handlePosterClickCapture(event: React.MouseEvent<HTMLElement>) {
+    const clickedHotspot = (event.target as HTMLElement).closest<HTMLElement>(".body-hotspot");
+    const mobilePointer = window.matchMedia("(max-width: 820px), (pointer: coarse)").matches;
+    if (clickedHotspot && mobilePointer && event.detail > 0) {
+      const nearestHotspot = [...event.currentTarget.querySelectorAll<HTMLElement>(".body-hotspot")]
+        .map((hotspot) => {
+          const bounds = hotspot.getBoundingClientRect();
+          return {
+            hotspot,
+            distance: Math.hypot(
+              event.clientX - (bounds.left + bounds.width / 2),
+              event.clientY - (bounds.top + bounds.height / 2),
+            ),
+          };
+        })
+        .sort((a, b) => a.distance - b.distance)[0]?.hotspot;
+      const muscleId = nearestHotspot?.dataset.muscleId;
+      if (muscleId) {
+        event.preventDefault();
+        event.stopPropagation();
+        choose(muscleId);
+        return;
+      }
+    }
     if (!suppressNextClick.current) return;
     suppressNextClick.current = false;
     event.preventDefault();
@@ -313,19 +331,6 @@ export default function Home() {
             })}
           </div>
 
-          <span
-            key={selected.id}
-            className={`muscle-glow glow-${glowShapeFor(selected.id)}`}
-            style={{
-              left: `${targetX}%`,
-              top: `${targetY}%`,
-              "--glow-w": `${glow[0]}px`,
-              "--glow-h": `${glow[1]}px`,
-              "--glow-r": `${glow[2]}deg`,
-              "--glow-color": selected.color,
-            } as React.CSSProperties}
-            aria-hidden="true"
-          />
         </div>
 
         <div className="poster-selection">

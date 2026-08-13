@@ -75,17 +75,23 @@ test("keeps every anatomy view available locally", async () => {
   assert.doesNotMatch(css, /fonts\.googleapis\.com/);
 });
 
-test("ships a lazy, selectable 3D model with every catalog muscle", async () => {
+test("ships lazy desktop and mobile 3D models with every catalog muscle", async () => {
   const modelUrl = new URL("../public/muscle-model.glb", import.meta.url);
-  const [model, modelStats, component, page] = await Promise.all([
+  const mobileModelUrl = new URL("../public/muscle-model-mobile.glb", import.meta.url);
+  const [model, mobileModel, modelStats, mobileModelStats, component, page, css] = await Promise.all([
     readFile(modelUrl),
+    readFile(mobileModelUrl),
     stat(modelUrl),
+    stat(mobileModelUrl),
     readFile(new URL("../app/MuscleModel3D.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
 
   assert.equal(model.readUInt32LE(0), 0x46546c67, "asset must be a binary glTF file");
   assert.ok(modelStats.size < 7_000_000, `3D asset is too large for mobile: ${modelStats.size} bytes`);
+  assert.equal(mobileModel.readUInt32LE(0), 0x46546c67, "mobile asset must be a binary glTF file");
+  assert.ok(mobileModelStats.size < 3_500_000, `mobile 3D asset is too large: ${mobileModelStats.size} bytes`);
   const jsonLength = model.readUInt32LE(12);
   const json = JSON.parse(model.subarray(20, 20 + jsonLength).toString("utf8").trim());
   const muscleIds = new Set(
@@ -95,9 +101,25 @@ test("ships a lazy, selectable 3D model with every catalog muscle", async () => 
   );
 
   assert.equal(muscleIds.size, 35);
+  const mobileJsonLength = mobileModel.readUInt32LE(12);
+  const mobileJson = JSON.parse(mobileModel.subarray(20, 20 + mobileJsonLength).toString("utf8").trim());
+  const mobileMuscleIds = new Set(
+    (mobileJson.nodes ?? [])
+      .map((node) => /^muscle__(.+?)__/.exec(node.name ?? "")?.[1])
+      .filter(Boolean),
+  );
+  assert.equal(mobileMuscleIds.size, 35);
   assert.match(component, /import\("three"\)/);
   assert.match(component, /Raycaster/);
   assert.match(component, /muscle-model\.glb/);
+  assert.match(component, /muscle-model-mobile\.glb/);
   assert.match(component, /onSelectRef\.current\(id\)/);
+  assert.doesNotMatch(component, /requestAnimationFrame|transparent:\s*true/);
   assert.match(page, /<MuscleModel3D/);
+  assert.match(page, /nearestHotspot/);
+  assert.match(page, /\(max-width: 820px\), \(pointer: coarse\)/);
+  assert.doesNotMatch(page, /muscle-glow/);
+  assert.match(css, /content-visibility:\s*auto/);
+  assert.match(css, /grid-template-columns:\s*minmax\(0, 1fr\)/);
+  assert.doesNotMatch(css, /@keyframes muscleGlow|\.muscle-glow/);
 });

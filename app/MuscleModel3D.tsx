@@ -48,7 +48,6 @@ export default function MuscleModel3D({ activeId, activeColor, activeName, lang,
       material.color.set(isActive ? activeColor : "#8f3f36");
       material.emissive.set(isActive ? activeColor : "#170504");
       material.emissiveIntensity = isActive ? 0.42 : 0.08;
-      material.opacity = isActive ? 1 : 0.58;
     }
     runtime.render();
   }, [activeColor, activeId]);
@@ -71,11 +70,13 @@ export default function MuscleModel3D({ activeId, activeColor, activeName, lang,
     ]).then(([THREE, { GLTFLoader }, { OrbitControls }]) => {
       if (cancelled || !mountRef.current) return;
       const mount = mountRef.current;
+      const mobileMode = window.matchMedia("(max-width: 820px), (pointer: coarse)").matches;
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(30, 1, 0.01, 100);
-      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+      const renderer = new THREE.WebGLRenderer({ antialias: !mobileMode, alpha: true, powerPreference: "high-performance" });
+      renderer.setPixelRatio(mobileMode ? 1 : Math.min(window.devicePixelRatio, 1.5));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.sortObjects = false;
       renderer.domElement.className = "model3d-canvas";
       renderer.domElement.setAttribute("role", "application");
       renderer.domElement.setAttribute(
@@ -93,14 +94,15 @@ export default function MuscleModel3D({ activeId, activeColor, activeName, lang,
       scene.add(rimLight);
 
       const controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.08;
+      controls.enableDamping = false;
       controls.enablePan = false;
       controls.minDistance = 6.2;
       controls.maxDistance = 18;
       controls.target.set(0, 0, 0);
 
       const render = () => renderer.render(scene, camera);
+      const onControlsChange = () => render();
+      controls.addEventListener("change", onControlsChange);
       const resize = () => {
         const width = Math.max(1, mount.clientWidth);
         const height = Math.max(1, mount.clientHeight);
@@ -137,17 +139,9 @@ export default function MuscleModel3D({ activeId, activeColor, activeName, lang,
       renderer.domElement.addEventListener("pointerdown", onPointerDown);
       renderer.domElement.addEventListener("pointerup", onPointerUp);
 
-      let animationFrame = 0;
-      const animate = () => {
-        controls.update();
-        render();
-        animationFrame = window.requestAnimationFrame(animate);
-      };
-      animate();
-
       const loader = new GLTFLoader();
       loader.load(
-        publicAsset("muscle-model.glb"),
+        publicAsset(mobileMode ? "muscle-model-mobile.glb" : "muscle-model.glb"),
         (gltf) => {
           if (cancelled) return;
           const model = gltf.scene;
@@ -165,9 +159,7 @@ export default function MuscleModel3D({ activeId, activeColor, activeName, lang,
               emissiveIntensity: isActive ? 0.42 : 0.08,
               roughness: 0.76,
               metalness: 0,
-              transparent: true,
-              opacity: isActive ? 1 : 0.58,
-              side: THREE.DoubleSide,
+              transparent: false,
             });
             meshes.push(mesh);
           });
@@ -199,10 +191,10 @@ export default function MuscleModel3D({ activeId, activeColor, activeName, lang,
       );
 
       cleanup = () => {
-        window.cancelAnimationFrame(animationFrame);
         resizeObserver.disconnect();
         renderer.domElement.removeEventListener("pointerdown", onPointerDown);
         renderer.domElement.removeEventListener("pointerup", onPointerUp);
+        controls.removeEventListener("change", onControlsChange);
         controls.dispose();
         runtimeRef.current?.meshes.forEach((mesh) => {
           mesh.geometry.dispose();
@@ -224,7 +216,7 @@ export default function MuscleModel3D({ activeId, activeColor, activeName, lang,
     eyebrow: "Настоящая геометрия · 35 групп мышц",
     title: "Интерактивная 3D-модель",
     text: "Вращай модель одним пальцем, масштабируй щипком и нажимай на мышцу, чтобы открыть её карточку.",
-    start: "Загрузить 3D · 6,7 МБ",
+    start: "Загрузить облегчённую 3D-модель",
     loading: "Загрузка модели",
     error: "Не удалось загрузить WebGL-модель. Двумерная карта выше остаётся доступна.",
     front: "Спереди",
@@ -235,7 +227,7 @@ export default function MuscleModel3D({ activeId, activeColor, activeName, lang,
     eyebrow: "Real geometry · 35 muscle groups",
     title: "Interactive 3D model",
     text: "Drag to rotate, pinch to zoom, and tap a muscle to open its card.",
-    start: "Load 3D · 6.7 MB",
+    start: "Load optimized 3D model",
     loading: "Loading model",
     error: "The WebGL model could not be loaded. The 2D map above remains available.",
     front: "Front",

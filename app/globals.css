@@ -55,7 +55,6 @@ a { text-decoration: none; }
   --responsive-body-scale: 1;
   --body-pan-y: 0px;
   --hitbox-counter-scale: 1;
-  --glow-counter-scale: 1;
   position: relative;
   container-type: size;
   height: calc(100vh - 68px);
@@ -149,35 +148,12 @@ a { text-decoration: none; }
 .body-hotspot.shape-core { clip-path: polygon(30% 0, 68% 0, 91% 15%, 100% 42%, 86% 66%, 74% 100%, 26% 100%, 12% 69%, 0 42%, 10% 17%); }
 .body-hotspot.shape-strap { clip-path: polygon(35% 0, 65% 3%, 84% 21%, 69% 55%, 61% 100%, 37% 96%, 20% 66%, 13% 30%); }
 .body-hotspot.shape-long { clip-path: polygon(34% 0, 66% 0, 88% 18%, 80% 48%, 68% 87%, 50% 100%, 31% 89%, 19% 54%, 13% 21%); }
-.body-hotspot:hover:before, .body-hotspot:focus-visible:before, .body-hotspot.active:before { background: color-mix(in srgb, var(--hit-color, #ffd3a8) 48%, transparent); filter: drop-shadow(0 0 8px var(--hit-color, #ffb67c)); }
+.body-hotspot:hover:before, .body-hotspot:focus-visible:before { background: transparent; filter: none; }
+.body-hotspot.active:before { inset: auto; left: 50%; top: 50%; width: 18px; height: 18px; background: color-mix(in srgb, var(--hit-color, #ffd3a8) 42%, #17301f); border: 2px solid #fff3cf; border-radius: 50%; clip-path: circle(50%); box-shadow: 0 0 0 4px color-mix(in srgb, var(--hit-color, #ffb67c) 20%, transparent); filter: none; transform: translate(-50%, -50%); }
 .body-hotspot:focus-visible { outline: 2px solid #ffe6bd; outline-offset: 3px; }
 .body-hotspot > span { position: absolute; z-index: 2; left: calc(100% + 8px); top: 50%; width: max-content; max-width: 180px; padding: 7px 9px; color: #fff7e4; background: #4a2d24ed; border: 1px solid #df9973; box-shadow: 0 8px 22px #24100888; font: 700 11px "Barlow Condensed"; text-transform: uppercase; letter-spacing: .4px; opacity: 0; transform: translateY(-50%); transition: opacity .15s ease; pointer-events: none; }
 .body-hotspot.tooltip-left > span { left: auto; right: calc(100% + 8px); }
 .body-hotspot:hover > span, .body-hotspot:focus-visible > span, .body-hotspot.active > span { opacity: 1; }
-
-.muscle-glow {
-  position: absolute;
-  z-index: 6;
-  width: var(--glow-w, 64px);
-  height: var(--glow-h, 100px);
-  overflow: hidden;
-  background: linear-gradient(145deg, color-mix(in srgb, var(--glow-color, #ffd6a8) 45%, #fff4c1) 0%, color-mix(in srgb, var(--glow-color, #ef806c) 58%, transparent) 68%, transparent 100%);
-  filter: saturate(1.2) drop-shadow(0 0 5px #ffd5a5aa) drop-shadow(0 0 13px #e9896a66);
-  mix-blend-mode: soft-light;
-  opacity: .78;
-  backdrop-filter: brightness(1.18) saturate(1.22);
-  transform: translate(-50%, -50%) rotate(var(--glow-r, 0deg)) scale(var(--glow-counter-scale));
-  pointer-events: none;
-  animation: muscleGlow 2.25s ease-in-out infinite;
-}
-.muscle-glow:after { content: ""; position: absolute; inset: -30%; background: linear-gradient(105deg, transparent 34%, #fff7d783 48%, transparent 62%); transform: translateX(-70%); animation: muscleSheen 2.25s ease-in-out infinite; }
-.glow-round { clip-path: polygon(50% 0, 78% 9%, 98% 35%, 94% 68%, 72% 94%, 45% 100%, 15% 84%, 0 48%, 14% 16%); }
-.glow-fan { clip-path: polygon(5% 20%, 28% 4%, 57% 0, 94% 18%, 100% 56%, 80% 88%, 51% 100%, 18% 85%, 0 52%); }
-.glow-core { clip-path: polygon(30% 0, 68% 0, 91% 15%, 100% 42%, 86% 66%, 74% 100%, 26% 100%, 12% 69%, 0 42%, 10% 17%); }
-.glow-strap { clip-path: polygon(35% 0, 65% 3%, 84% 21%, 69% 55%, 61% 100%, 37% 96%, 20% 66%, 13% 30%); }
-.glow-long { clip-path: polygon(34% 0, 66% 0, 88% 18%, 80% 48%, 68% 87%, 50% 100%, 31% 89%, 19% 54%, 13% 21%); }
-@keyframes muscleGlow { 50% { opacity: .5; filter: saturate(1.28) drop-shadow(0 0 8px #ffe1b8aa) drop-shadow(0 0 17px #db7e6355); } }
-@keyframes muscleSheen { 50%, 100% { transform: translateX(72%); } }
 
 .poster-selection {
   position: absolute;
@@ -213,10 +189,10 @@ a { text-decoration: none; }
 .model3d-selected small, .model3d-selected b { display: block; }
 .model3d-selected small { color: #748b79; font: 700 8px "Inter"; text-transform: uppercase; letter-spacing: 1px; }
 .model3d-selected b { margin-top: 5px; color: #f2ebd7; font: 600 24px "Barlow Condensed"; text-transform: uppercase; }
-.model3d-stage { position: relative; min-height: 720px; overflow: hidden; background: radial-gradient(circle at 52% 48%, #164026 0%, #082511 38%, #03180a 72%); isolation: isolate; }
+.model3d-stage { position: relative; min-width: 0; min-height: 720px; overflow: hidden; background: radial-gradient(circle at 52% 48%, #164026 0%, #082511 38%, #03180a 72%); isolation: isolate; }
 .model3d-stage:before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .2; background-image: linear-gradient(#89b7951a 1px, transparent 1px), linear-gradient(90deg, #89b7951a 1px, transparent 1px); background-size: 40px 40px; mask-image: radial-gradient(circle, #000, transparent 78%); }
 .model3d-mount { position: absolute; inset: 0; }
-.model3d-canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.model3d-canvas { display: block; width: 100%; max-width: 100%; height: 100%; cursor: grab; touch-action: none; }
 .model3d-canvas:active { cursor: grabbing; }
 .model3d-start { position: absolute; z-index: 2; left: 50%; top: 50%; display: grid; place-items: center; gap: 14px; min-width: 220px; padding: 24px 28px; color: #d9f5ff; background: #075981e8; border: 1px solid #38c2ff; box-shadow: 0 22px 70px #001b2c88, 0 0 0 8px #38c2ff12; font: 800 10px "Inter"; text-transform: uppercase; letter-spacing: .8px; transform: translate(-50%, -50%); cursor: pointer; transition: .2s ease; }
 .model3d-start span { display: grid; place-items: center; width: 62px; height: 62px; color: #062e43; background: #76dcff; border-radius: 50%; font-size: 19px; box-shadow: 0 0 28px #54d0ff88; }
@@ -381,10 +357,16 @@ a { text-decoration: none; }
 }
 
 @media (max-width: 820px) {
+  html { scroll-behavior: auto; }
   .anatomy-nav { grid-template-columns: 1fr auto; }
   .anatomy-nav nav { display: none; }
-  .anatomy-poster { --responsive-body-scale: 1.25; --body-pan-y: 42px; --hitbox-counter-scale: .8; --glow-counter-scale: .8; height: max(620px, calc(100dvh - 68px)); min-height: 0; max-height: none; }
+  .anatomy-poster { --responsive-body-scale: 1.25; --body-pan-y: 42px; --hitbox-counter-scale: .8; height: max(620px, calc(100dvh - 68px)); min-height: 0; max-height: none; }
   .poster-art img { object-fit: contain; object-position: center; }
+  .poster-art img { animation: none; }
+  .poster-art, .body-map-layer { transition: none; }
+  .poster-noise { display: none; }
+  .anatomy-nav, .body-controls, .poster-heading, .poster-selection, .model3d-toolbar { backdrop-filter: none; }
+  .body-hotspot:before, .body-hotspot > span { transition: none; }
   .callout { display: none; }
   .body-hotspot > span { display: none; }
   .poster-heading { top: 18px; left: 18px; min-width: 0; width: min(265px, calc(50% - 24px)); padding: 11px 14px; text-align: left; transform: none; }
@@ -397,7 +379,10 @@ a { text-decoration: none; }
   .poster-selection { width: min(390px, calc(100% - 32px)); bottom: 58px; }
   .poster-selection p { max-width: 78%; }
   .poster-scroll { right: 18px; bottom: 18px; }
-  .model3d-section { grid-template-columns: 1fr; min-height: 0; }
+  .model3d-section { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .model3d-section { content-visibility: auto; contain-intrinsic-size: auto 1100px; }
+  .catalog-section { content-visibility: auto; contain-intrinsic-size: auto 4400px; }
+  .anatomy-footer { content-visibility: auto; contain-intrinsic-size: auto 82px; }
   .model3d-copy { padding: 56px 24px 34px; }
   .model3d-copy h2 { max-width: none; font-size: clamp(46px, 10vw, 68px); }
   .model3d-copy > p { max-width: 620px; }
@@ -416,7 +401,7 @@ a { text-decoration: none; }
   .anatomy-nav { height: 62px; }
   .nav-tools { gap: 7px; }
   .nav-count { display: none; }
-  .anatomy-poster { --responsive-body-scale: 1.48; --body-pan-y: 64px; --hitbox-counter-scale: .68; --glow-counter-scale: .42; height: calc(100dvh - 62px); min-height: 520px; }
+  .anatomy-poster { --responsive-body-scale: 1.48; --body-pan-y: 64px; --hitbox-counter-scale: .68; height: calc(100dvh - 62px); min-height: 520px; }
   .poster-heading { top: 10px; left: 12px; right: 12px; width: auto; padding: 8px 10px; text-align: center; }
   .poster-heading h1 { font-size: 20px; }
   .poster-heading > p { display: none; }
@@ -430,8 +415,7 @@ a { text-decoration: none; }
   .poster-selection b { max-width: calc(100% - 90px); font-size: 21px; }
   .poster-selection p { display: none; }
   .poster-selection a { top: 12px; bottom: auto; min-height: 44px; display: inline-flex; align-items: center; }
-  .muscle-glow { display: none; }
-  .body-hotspot.active:before { inset: auto; left: 50%; top: 50%; width: 22px; height: 22px; background: color-mix(in srgb, var(--hit-color, #ffd3a8) 58%, transparent); border: 2px solid #fff3cf; border-radius: 50%; clip-path: circle(50%); box-shadow: 0 0 0 5px color-mix(in srgb, var(--hit-color, #ffb67c) 24%, transparent); transform: translate(-50%, -50%); }
+  .body-hotspot.active:before { width: 20px; height: 20px; }
   .poster-meta { display: none; }
   .poster-scroll { display: none; }
   .model3d-copy { padding: 44px 18px 28px; }
@@ -454,11 +438,11 @@ a { text-decoration: none; }
 }
 
 @media (max-width: 520px) and (min-height: 720px) {
-  .anatomy-poster { --responsive-body-scale: 1.68; --body-pan-y: 72px; --hitbox-counter-scale: .6; --glow-counter-scale: .36; }
+  .anatomy-poster { --responsive-body-scale: 1.68; --body-pan-y: 72px; --hitbox-counter-scale: .6; }
 }
 
 @media (max-width: 820px) and (orientation: landscape) and (max-height: 540px) {
-  .anatomy-poster { --responsive-body-scale: 1.08; --body-pan-y: 18px; --hitbox-counter-scale: .93; --glow-counter-scale: .93; height: calc(100dvh - 62px); min-height: 420px; }
+  .anatomy-poster { --responsive-body-scale: 1.08; --body-pan-y: 18px; --hitbox-counter-scale: .93; height: calc(100dvh - 62px); min-height: 420px; }
   .poster-heading { display: none; }
   .body-controls { top: 12px; left: 12px; right: auto; width: 230px; display: block; }
   .body-type-toggle button, .body-view-toggle button { min-height: 38px; }
