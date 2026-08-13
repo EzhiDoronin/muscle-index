@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useRef, useState } from "react";
-import { backViewProfiles, englishContent, extendedPoseProfiles, flexedPoseProfiles, glowProfiles, glowShapeFor, homePlanFor, relatedVideosFor, tutorialFor, type Lang, type TrainingMode, ui, videoFor, zoneEnglish } from "./muscleExtras";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { backViewProfiles, englishContent, glowProfiles, glowShapeFor, homePlanFor, relatedVideosFor, tutorialFor, type Lang, type TrainingMode, ui, videoFor, zoneEnglish } from "./muscleExtras";
+import MuscleModel3D from "./MuscleModel3D";
 
 type Zone = "Голова и шея" | "Верх тела" | "Кор" | "Низ тела";
 type Side = "left" | "right";
@@ -72,27 +73,6 @@ const backOnlyMuscleIds = new Set(["erector-spinae", "gluteus-medius", "gluteus-
 
 type HotspotProfile = [number, number, number, number, number];
 
-const poseHotspots: Record<"flexed" | "extended", Record<string, HotspotProfile>> = {
-  flexed: {
-    deltoid: [42.7, 22.2, 58, 58, 0],
-    biceps: [40.2, 23.2, 92, 46, -5],
-    brachioradialis: [36.8, 20.5, 38, 84, -4],
-    "flexor-carpi-radialis": [36.6, 16.8, 30, 76, -3],
-    triceps: [60.6, 23.7, 90, 42, 5],
-    palmaris: [63.4, 16.7, 30, 76, 3],
-    "flexor-digitorum": [63.2, 20.4, 36, 82, 4],
-  },
-  extended: {
-    deltoid: [43.2, 21.4, 64, 60, 0],
-    biceps: [38.9, 22.1, 96, 42, 0],
-    brachioradialis: [30.8, 22.0, 90, 34, 0],
-    "flexor-carpi-radialis": [25.7, 21.8, 86, 30, 0],
-    triceps: [63.8, 22.3, 98, 42, 0],
-    palmaris: [74.3, 21.8, 84, 30, 0],
-    "flexor-digitorum": [69.9, 22.0, 88, 34, 0],
-  },
-};
-
 export default function Home() {
   const [selectedId, setSelectedId] = useState("pectoralis");
   const [zone, setZone] = useState<(typeof zoneFilters)[number]>("Все");
@@ -103,7 +83,8 @@ export default function Home() {
   const [bodyView, setBodyView] = useState<BodyView>("front");
   const [theme, setTheme] = useState<Theme>("dark");
   const [bodyZoom, setBodyZoom] = useState(1);
-  const dragStartX = useRef<number | null>(null);
+  const dragStart = useRef<{ x: number; y: number; pointerId: number } | null>(null);
+  const suppressNextClick = useRef(false);
 
   const selected = muscles.find((muscle) => muscle.id === selectedId) ?? muscles[0];
   const words = ui[lang];
@@ -117,24 +98,17 @@ export default function Home() {
   const selectedVideo = trainingMode === "home" ? homePlan.video : videoFor(selected.id);
   const relatedVideos = relatedVideosFor(selected.id, selectedVideo.id);
   const tutorial = tutorialFor(selected, lang, selectedCue, [...selectedExercises], trainingMode);
-  const flexedPose = bodyView === "front" && bodyType === "male" ? flexedPoseProfiles[selected.id] : undefined;
-  const extendedPose = bodyView === "front" && bodyType === "male" ? extendedPoseProfiles[selected.id] : undefined;
   const backPose = bodyView === "back" ? backViewProfiles[selected.id] : undefined;
-  const activePose = backPose ?? flexedPose ?? extendedPose;
-  const poseKey = bodyView === "back" ? `${bodyType}-back` : flexedPose ? "male-flexed" : extendedPose ? "male-extended" : `${bodyType}-front`;
+  const poseKey = `${bodyType}-${bodyView}`;
   const bodyImage = bodyView === "back"
-    ? publicAsset(`muscle-anatomy-${bodyType}-back.png`)
+    ? publicAsset(`muscle-anatomy-${bodyType}-back.webp`)
     : bodyType === "female"
-      ? publicAsset("muscle-anatomy-female-front.png")
-      : flexedPose
-        ? publicAsset("muscle-anatomy-flexed.png")
-        : extendedPose
-          ? publicAsset("muscle-anatomy-arms-out.png")
-          : publicAsset("muscle-anatomy-front.png");
-  const rawTargetX = activePose?.target[0] ?? selected.targetX;
-  const targetY = activePose?.target[1] ?? selected.targetY;
+      ? publicAsset("muscle-anatomy-female-front.webp")
+      : publicAsset("muscle-anatomy-front.webp");
+  const rawTargetX = backPose?.target[0] ?? selected.targetX;
+  const targetY = backPose?.target[1] ?? selected.targetY;
   const targetX = bodyType === "female" ? femaleAdjustedX(rawTargetX, targetY) : rawTargetX;
-  const glow = activePose?.glow ?? glowProfiles[selected.id] ?? [64, 100, 0];
+  const glow = backPose?.glow ?? glowProfiles[selected.id] ?? [64, 100, 0];
   const posterMuscles = bodyView === "back" ? muscles.filter((muscle) => backMuscleIds.has(muscle.id)) : muscles.filter((muscle) => !backOnlyMuscleIds.has(muscle.id));
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -144,6 +118,10 @@ export default function Home() {
       return inZone && inSearch;
     });
   }, [query, zone]);
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   function choose(id: string) {
     setSelectedId(id);
@@ -162,40 +140,38 @@ export default function Home() {
     return 50 + (x - 50) * scale;
   }
 
-  function chooseNearestHotspot(event: React.MouseEvent<HTMLDivElement>) {
-    // Overlapping anatomical hit areas stay accurate on compact screens by
-    // selecting the muscle whose visual centre is closest to the tap.
-    if (event.detail === 0) return;
-    const hotspots = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>(".body-hotspot"));
-    let nearest: HTMLButtonElement | undefined;
-    let nearestDistance = Number.POSITIVE_INFINITY;
-
-    for (const hotspot of hotspots) {
-      const rect = hotspot.getBoundingClientRect();
-      const distance = Math.hypot(event.clientX - (rect.left + rect.width / 2), event.clientY - (rect.top + rect.height / 2));
-      if (distance < nearestDistance) {
-        nearest = hotspot;
-        nearestDistance = distance;
-      }
-    }
-
-    const id = nearest?.dataset.muscleId;
-    if (!id) return;
-    event.preventDefault();
-    event.stopPropagation();
-    choose(id);
-  }
-
   function handlePosterPointerDown(event: React.PointerEvent<HTMLElement>) {
-    if ((event.target as HTMLElement).closest("button, a, input, iframe")) return;
-    dragStartX.current = event.clientX;
+    if ((event.target as HTMLElement).closest(".body-controls, .poster-selection, .callout, .poster-scroll")) return;
+    dragStart.current = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+    event.currentTarget.setPointerCapture(event.pointerId);
   }
 
   function handlePosterPointerUp(event: React.PointerEvent<HTMLElement>) {
-    if (dragStartX.current === null) return;
-    const distance = event.clientX - dragStartX.current;
-    dragStartX.current = null;
-    if (Math.abs(distance) > 45) changeBodyView(bodyView === "front" ? "back" : "front");
+    const start = dragStart.current;
+    dragStart.current = null;
+    if (!start) return;
+    const distanceX = event.clientX - start.x;
+    const distanceY = event.clientY - start.y;
+    if (Math.abs(distanceX) > 56 && Math.abs(distanceX) > Math.abs(distanceY) * 1.2) {
+      suppressNextClick.current = true;
+      window.setTimeout(() => { suppressNextClick.current = false; }, 350);
+      changeBodyView(bodyView === "front" ? "back" : "front");
+    }
+  }
+
+  function handlePosterClickCapture(event: React.MouseEvent<HTMLElement>) {
+    if (!suppressNextClick.current) return;
+    suppressNextClick.current = false;
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  function chooseFromCatalog(id: string) {
+    choose(id);
+    if (!window.matchMedia("(max-width: 820px)").matches) return;
+    window.requestAnimationFrame(() => {
+      document.getElementById("details")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   function displayName(muscle: Muscle) {
@@ -213,11 +189,6 @@ export default function Home() {
         const x = bodyType === "female" ? femaleAdjustedX(profile.target[0], profile.target[1]) : profile.target[0];
         return [x, profile.target[1], profile.glow[0] * .78, profile.glow[1] * .68, profile.glow[2]];
       }
-    }
-    const poseName = flexedPose ? "flexed" : extendedPose ? "extended" : undefined;
-    if (poseName) {
-      const poseHotspot = poseHotspots[poseName][muscle.id];
-      if (poseHotspot) return poseHotspot;
     }
     const muscleGlow = glowProfiles[muscle.id] ?? [54, 84, 0];
     const x = bodyType === "female" ? femaleAdjustedX(muscle.targetX, muscle.targetY) : muscle.targetX;
@@ -259,7 +230,7 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="anatomy-poster" id="poster" style={{ "--body-zoom": bodyZoom } as React.CSSProperties} onPointerDown={handlePosterPointerDown} onPointerUp={handlePosterPointerUp} onPointerCancel={() => { dragStartX.current = null; }}>
+      <section className="anatomy-poster" id="poster" style={{ "--body-zoom": bodyZoom } as React.CSSProperties} onPointerDown={handlePosterPointerDown} onPointerUp={handlePosterPointerUp} onPointerCancel={() => { dragStart.current = null; }} onClickCapture={handlePosterClickCapture}>
         <div className="poster-art">
           <Image
             key={poseKey}
@@ -316,7 +287,7 @@ export default function Home() {
         ))}
 
         <div className="body-map-layer">
-          <div className="body-hotspots" onClickCapture={chooseNearestHotspot} aria-label={lang === "ru" ? "Мышцы на теле" : "Muscles on the body"}>
+          <div className="body-hotspots" aria-label={lang === "ru" ? "Мышцы на теле" : "Muscles on the body"}>
             {posterMuscles.map((muscle) => {
               const hotspot = hotspotFor(muscle);
               return (
@@ -330,6 +301,7 @@ export default function Home() {
                     "--hit-w": `${hotspot[2]}px`,
                     "--hit-h": `${hotspot[3]}px`,
                     "--hit-r": `${hotspot[4]}deg`,
+                    "--hit-color": muscle.color,
                   } as React.CSSProperties}
                   onClick={() => choose(muscle.id)}
                   aria-label={`${lang === "ru" ? "Это мышца" : "This muscle is"}: ${displayName(muscle)}`}
@@ -350,6 +322,7 @@ export default function Home() {
               "--glow-w": `${glow[0]}px`,
               "--glow-h": `${glow[1]}px`,
               "--glow-r": `${glow[2]}deg`,
+              "--glow-color": selected.color,
             } as React.CSSProperties}
             aria-hidden="true"
           />
@@ -357,16 +330,22 @@ export default function Home() {
 
         <div className="poster-selection">
           <span>{words.selected}</span>
-          <b>{selectedName}</b>
+          <b aria-live="polite">{selectedName}</b>
           <i>{lang === "ru" ? selected.latin : selected.name}</i>
-          {flexedPose && <small className="pose-state">↳ {words.flexPose}</small>}
-          {extendedPose && <small className="pose-state">↳ {words.extendedPose}</small>}
           <p>{selectedFunction}</p>
           <a href="#details">{words.more}</a>
         </div>
 
         <a className="poster-scroll" href="#catalog"><span>↓</span> {words.scroll}</a>
       </section>
+
+      <MuscleModel3D
+        activeId={selected.id}
+        activeColor={selected.color}
+        activeName={selectedName}
+        lang={lang}
+        onSelect={choose}
+      />
 
       <section className="catalog-section" id="catalog">
         <div className="catalog-intro">
@@ -466,7 +445,7 @@ export default function Home() {
             <div className="browser-toolbar">
               <label>
                 <span>⌕</span>
-                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={words.search} />
+                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={words.search} aria-label={words.search} />
               </label>
               <strong>{String(filtered.length).padStart(2, "0")}</strong>
             </div>
@@ -479,7 +458,7 @@ export default function Home() {
 
             <div className="scroll-list" tabIndex={0} aria-label={words.list}>
               {filtered.map((muscle, index) => (
-                <button key={muscle.id} className={selectedId === muscle.id ? "active" : ""} onClick={() => choose(muscle.id)}>
+                <button key={muscle.id} className={selectedId === muscle.id ? "active" : ""} onClick={() => chooseFromCatalog(muscle.id)}>
                   <span className="row-index">{String(index + 1).padStart(2, "0")}</span>
                   <i style={{ background: muscle.color }} />
                   <div><b>{displayName(muscle)}</b><small>{lang === "ru" ? muscle.latin : muscle.name}</small></div>

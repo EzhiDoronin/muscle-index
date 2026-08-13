@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-const previewImage = siteUrl ? `${siteUrl}/muscle-anatomy-front.png` : "/muscle-anatomy-front.png";
+const previewImage = siteUrl ? `${siteUrl}/muscle-anatomy-front.webp` : "/muscle-anatomy-front.webp";
 
 export const metadata: Metadata = {
   title: "Muscle Index — интерактивная карта мышц",

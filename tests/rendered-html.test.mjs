@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, stat } from "node:fs/promises";
 import test from "node:test";
 
 async function render() {
@@ -43,12 +43,12 @@ test("server-renders the interactive muscle atlas", async () => {
 
 test("keeps every anatomy view available locally", async () => {
   const imageNames = [
-    "muscle-anatomy-front.png",
+    "muscle-anatomy-front.webp",
     "muscle-anatomy-flexed.png",
     "muscle-anatomy-arms-out.png",
-    "muscle-anatomy-male-back.png",
-    "muscle-anatomy-female-front.png",
-    "muscle-anatomy-female-back.png",
+    "muscle-anatomy-male-back.webp",
+    "muscle-anatomy-female-front.webp",
+    "muscle-anatomy-female-back.webp",
   ];
 
   await Promise.all(
@@ -61,11 +61,43 @@ test("keeps every anatomy view available locally", async () => {
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
 
-  assert.match(page, /muscle-anatomy-\$\{bodyType\}-back\.png/);
-  assert.match(page, /muscle-anatomy-female-front\.png/);
-  assert.match(page, /muscle-anatomy-flexed\.png/);
-  assert.match(page, /muscle-anatomy-arms-out\.png/);
+  assert.match(page, /muscle-anatomy-\$\{bodyType\}-back\.webp/);
+  assert.match(page, /muscle-anatomy-female-front\.webp/);
+  assert.match(page, /muscle-anatomy-front\.webp/);
+  assert.doesNotMatch(page, /chooseNearestHotspot|poseHotspots|flexedPoseProfiles|extendedPoseProfiles/);
+  assert.match(page, /setPointerCapture/);
+  assert.match(page, /aria-live="polite"/);
+  assert.match(css, /min-width:\s*44px;\s*min-height:\s*44px/);
+  assert.match(css, /height:\s*calc\(100dvh - 62px\)/);
+  assert.doesNotMatch(css, /--responsive-body-scale:\s*2(?:[;\s])/);
   assert.match(layout, /title:\s*"Muscle Index/);
   assert.doesNotMatch(layout, /Starter Project|codex-preview|_sites-preview/);
   assert.doesNotMatch(css, /fonts\.googleapis\.com/);
+});
+
+test("ships a lazy, selectable 3D model with every catalog muscle", async () => {
+  const modelUrl = new URL("../public/muscle-model.glb", import.meta.url);
+  const [model, modelStats, component, page] = await Promise.all([
+    readFile(modelUrl),
+    stat(modelUrl),
+    readFile(new URL("../app/MuscleModel3D.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+  ]);
+
+  assert.equal(model.readUInt32LE(0), 0x46546c67, "asset must be a binary glTF file");
+  assert.ok(modelStats.size < 7_000_000, `3D asset is too large for mobile: ${modelStats.size} bytes`);
+  const jsonLength = model.readUInt32LE(12);
+  const json = JSON.parse(model.subarray(20, 20 + jsonLength).toString("utf8").trim());
+  const muscleIds = new Set(
+    (json.nodes ?? [])
+      .map((node) => /^muscle__(.+?)__/.exec(node.name ?? "")?.[1])
+      .filter(Boolean),
+  );
+
+  assert.equal(muscleIds.size, 35);
+  assert.match(component, /import\("three"\)/);
+  assert.match(component, /Raycaster/);
+  assert.match(component, /muscle-model\.glb/);
+  assert.match(component, /onSelectRef\.current\(id\)/);
+  assert.match(page, /<MuscleModel3D/);
 });
