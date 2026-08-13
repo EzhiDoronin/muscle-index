@@ -11,17 +11,47 @@
     "name": "rolldown-runtime"
   },
   "app/page.tsx": {
-    "file": "assets/page-Clz-9waL.js",
+    "file": "assets/page-BDUxIuMt.js",
     "name": "page",
     "src": "app/page.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-S-ySWqyJ.js",
+      "virtual:vinext-app-browser-entry",
       "_framework-DjPHiq1u.js"
+    ],
+    "dynamicImports": [
+      "node_modules/.pnpm/three@0.185.1/node_modules/three/build/three.module.js",
+      "node_modules/.pnpm/three@0.185.1/node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+      "node_modules/.pnpm/three@0.185.1/node_modules/three/examples/jsm/controls/OrbitControls.js"
+    ]
+  },
+  "node_modules/.pnpm/three@0.185.1/node_modules/three/build/three.module.js": {
+    "file": "assets/three.module-Djo66mXo.js",
+    "name": "three.module",
+    "src": "node_modules/.pnpm/three@0.185.1/node_modules/three/build/three.module.js",
+    "isDynamicEntry": true
+  },
+  "node_modules/.pnpm/three@0.185.1/node_modules/three/examples/jsm/controls/OrbitControls.js": {
+    "file": "assets/OrbitControls-Bsga2jM_.js",
+    "name": "OrbitControls",
+    "src": "node_modules/.pnpm/three@0.185.1/node_modules/three/examples/jsm/controls/OrbitControls.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "node_modules/.pnpm/three@0.185.1/node_modules/three/build/three.module.js"
+    ]
+  },
+  "node_modules/.pnpm/three@0.185.1/node_modules/three/examples/jsm/loaders/GLTFLoader.js": {
+    "file": "assets/GLTFLoader-PfAJ-qmT.js",
+    "name": "GLTFLoader",
+    "src": "node_modules/.pnpm/three@0.185.1/node_modules/three/examples/jsm/loaders/GLTFLoader.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "node_modules/.pnpm/three@0.185.1/node_modules/three/build/three.module.js"
     ]
   },
   "node_modules/.pnpm/vinext@0.0.50_@vitejs+plugi_505fe0eafc345226cb929f44ee5d033b/node_modules/vinext/dist/shims/layout-segment-context.js": {
-    "file": "assets/layout-segment-context-BeQQLU8p.js",
+    "file": "assets/layout-segment-context-CNbKX9YV.js",
     "name": "layout-segment-context",
     "src": "node_modules/.pnpm/vinext@0.0.50_@vitejs+plugi_505fe0eafc345226cb929f44ee5d033b/node_modules/vinext/dist/shims/layout-segment-context.js",
     "isDynamicEntry": true,
@@ -32,7 +62,7 @@
     ]
   },
   "virtual:vinext-app-browser-entry": {
-    "file": "assets/index-DQXC5YfF.js",
+    "file": "assets/index-DKO0B2tM.js",
     "name": "index",
     "src": "virtual:vinext-app-browser-entry",
     "isEntry": true,
