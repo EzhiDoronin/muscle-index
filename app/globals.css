@@ -103,6 +103,7 @@ a { text-decoration: none; }
   --tag: #83936c;
   position: absolute;
   z-index: 5;
+  top: var(--label-y);
   width: clamp(125px, 15vw, 220px);
   height: 22px;
   padding: 0;
@@ -367,7 +368,11 @@ a { text-decoration: none; }
   .poster-noise { display: none; }
   .anatomy-nav, .body-controls, .poster-heading, .poster-selection, .model3d-toolbar { backdrop-filter: none; }
   .body-hotspot:before, .body-hotspot > span { transition: none; }
-  .callout { display: none; }
+  .callout { top: var(--mobile-label-y); display: block; width: 108px; height: auto; min-height: 22px; }
+  .callout.left { left: 4px; }
+  .callout.right { right: 4px; }
+  .callout span { display: block; padding: 4px 6px; overflow: visible; font-size: 9px; line-height: 1.05; text-overflow: clip; white-space: normal; overflow-wrap: anywhere; }
+  .callout.left i, .callout.right i { width: calc(50vw - 116px); }
   .body-hotspot > span { display: none; }
   .poster-heading { top: 18px; left: 18px; min-width: 0; width: min(265px, calc(50% - 24px)); padding: 11px 14px; text-align: left; transform: none; }
   .poster-heading > p { display: block; }

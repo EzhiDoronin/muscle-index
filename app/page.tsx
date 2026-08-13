@@ -295,7 +295,11 @@ export default function Home() {
           <button
             key={muscle.id}
             className={`callout ${muscle.side} ${selectedId === muscle.id ? "active" : ""}`}
-            style={{ top: `${muscle.labelY}%`, "--tag": muscle.color } as React.CSSProperties}
+            style={{
+              "--label-y": `${muscle.labelY}%`,
+              "--mobile-label-y": `${20 + muscle.labelY * .72}%`,
+              "--tag": muscle.color,
+            } as React.CSSProperties}
             onClick={() => choose(muscle.id)}
             aria-label={`${lang === "ru" ? "Выбрать мышцу" : "Select muscle"}: ${displayName(muscle)}`}
           >
