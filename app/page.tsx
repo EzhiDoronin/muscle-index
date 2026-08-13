@@ -122,6 +122,12 @@ export default function Home() {
     setSelectedId(id);
     if (backOnlyMuscleIds.has(id)) setBodyView("back");
     else if (bodyView === "back" && !backMuscleIds.has(id)) setBodyView("front");
+    window.requestAnimationFrame(() => {
+      document.getElementById("poster")?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "start",
+      });
+    });
   }
 
   function changeBodyView(nextView: BodyView) {
@@ -182,14 +188,6 @@ export default function Home() {
     suppressNextClick.current = false;
     event.preventDefault();
     event.stopPropagation();
-  }
-
-  function chooseFromCatalog(id: string) {
-    choose(id);
-    if (!window.matchMedia("(max-width: 820px)").matches) return;
-    window.requestAnimationFrame(() => {
-      document.getElementById("details")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
   }
 
   function displayName(muscle: Muscle) {
@@ -294,6 +292,7 @@ export default function Home() {
         {posterMuscles.map((muscle) => (
           <button
             key={muscle.id}
+            data-muscle-id={muscle.id}
             className={`callout ${muscle.side} ${selectedId === muscle.id ? "active" : ""}`}
             style={{
               "--label-y": `${muscle.labelY}%`,
@@ -359,6 +358,7 @@ export default function Home() {
           {posterMuscles.map((muscle) => (
             <button
               key={`mobile-${poseKey}-${muscle.id}`}
+              data-muscle-id={muscle.id}
               className={selectedId === muscle.id ? "active" : ""}
               style={{ "--tag": muscle.color } as React.CSSProperties}
               onClick={() => choose(muscle.id)}
@@ -491,7 +491,7 @@ export default function Home() {
 
             <div className="scroll-list" tabIndex={0} aria-label={words.list}>
               {filtered.map((muscle, index) => (
-                <button key={muscle.id} className={selectedId === muscle.id ? "active" : ""} onClick={() => chooseFromCatalog(muscle.id)}>
+                <button key={muscle.id} data-muscle-id={muscle.id} className={selectedId === muscle.id ? "active" : ""} onClick={() => choose(muscle.id)}>
                   <span className="row-index">{String(index + 1).padStart(2, "0")}</span>
                   <i style={{ background: muscle.color }} />
                   <div><b>{displayName(muscle)}</b><small>{lang === "ru" ? muscle.latin : muscle.name}</small></div>
