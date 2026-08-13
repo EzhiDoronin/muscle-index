@@ -121,5 +121,7 @@ test("ships lazy desktop and mobile 3D models with every catalog muscle", async 
   assert.doesNotMatch(page, /muscle-glow/);
   assert.match(css, /content-visibility:\s*auto/);
   assert.match(css, /grid-template-columns:\s*minmax\(0, 1fr\)/);
+  assert.match(css, /\.model3d-section\s*\{\s*display:\s*none;\s*\}/);
+  assert.match(css, /\.tutorial-block li\s*\{\s*grid-template-columns:\s*32px minmax\(0, 1fr\)/);
   assert.doesNotMatch(css, /@keyframes muscleGlow|\.muscle-glow/);
 });

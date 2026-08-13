@@ -379,8 +379,7 @@ a { text-decoration: none; }
   .poster-selection { width: min(390px, calc(100% - 32px)); bottom: 58px; }
   .poster-selection p { max-width: 78%; }
   .poster-scroll { right: 18px; bottom: 18px; }
-  .model3d-section { grid-template-columns: minmax(0, 1fr); min-height: 0; }
-  .model3d-section { content-visibility: auto; contain-intrinsic-size: auto 1100px; }
+  .model3d-section { display: none; }
   .catalog-section { content-visibility: auto; contain-intrinsic-size: auto 4400px; }
   .anatomy-footer { content-visibility: auto; contain-intrinsic-size: auto 82px; }
   .model3d-copy { padding: 56px 24px 34px; }
@@ -391,8 +390,14 @@ a { text-decoration: none; }
   .catalog-intro { grid-template-columns: 1fr; gap: 14px; padding: 0 8px; }
   .catalog-intro > span { grid-column: auto; max-width: 520px; }
   .training-mode-panel { grid-template-columns: 1fr; gap: 12px; margin-top: -4px; }
-  .catalog-grid { grid-template-columns: 1fr; }
-  .selected-card { position: relative; top: auto; min-height: auto; }
+  .catalog-grid { grid-template-columns: minmax(0, 1fr); min-width: 0; }
+  .catalog-grid > * { min-width: 0; }
+  .selected-card { position: relative; top: auto; width: 100%; min-width: 0; min-height: auto; }
+  .selected-card h3 { max-width: 100%; overflow-wrap: anywhere; }
+  .selected-card p, .selected-card b { overflow-wrap: anywhere; }
+  .selected-cue, .selected-exercises, .tutorial-block, .tutorial-block li, .tutorial-block li p { min-width: 0; max-width: 100%; }
+  .tutorial-block li { grid-template-columns: 32px minmax(0, 1fr); }
+  .tutorial-block li p { font-size: 14px; line-height: 1.62; }
   .muscle-browser { grid-row: 1; }
   .scroll-list { max-height: 560px; }
 }
@@ -433,6 +438,7 @@ a { text-decoration: none; }
   .scroll-list > button { grid-template-columns: 24px 6px 1fr 20px; padding-inline: 12px; }
   .selected-actions { flex-direction: column; }
   .selected-actions a { justify-content: center; }
+  .selected-card { padding: 26px 20px; }
   .anatomy-footer { grid-template-columns: 1fr auto; }
   .anatomy-footer p { display: none; }
 }
