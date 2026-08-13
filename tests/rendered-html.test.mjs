@@ -117,14 +117,15 @@ test("ships lazy desktop and mobile 3D models with every catalog muscle", async 
   assert.doesNotMatch(component, /requestAnimationFrame|transparent:\s*true/);
   assert.match(page, /<MuscleModel3D/);
   assert.match(page, /nearestHotspot/);
-  assert.match(page, /"--mobile-label-y"/);
   assert.match(page, /\(max-width: 820px\), \(pointer: coarse\)/);
   assert.doesNotMatch(page, /muscle-glow/);
   assert.match(css, /content-visibility:\s*auto/);
   assert.match(css, /grid-template-columns:\s*minmax\(0, 1fr\)/);
   assert.match(css, /\.model3d-section\s*\{\s*display:\s*none;\s*\}/);
   assert.match(css, /\.tutorial-block li\s*\{\s*grid-template-columns:\s*32px minmax\(0, 1fr\)/);
-  assert.match(css, /\.callout\s*\{\s*top:\s*var\(--mobile-label-y\);\s*display:\s*block/);
-  assert.doesNotMatch(css, /\.callout\s*\{\s*display:\s*none/);
+  assert.match(page, /mobile-muscle-directory/);
+  assert.match(page, /mobile-directory-grid/);
+  assert.match(css, /\.callout\s*\{\s*display:\s*none/);
+  assert.match(css, /\.mobile-directory-grid\s*\{\s*display:\s*grid/);
   assert.doesNotMatch(css, /@keyframes muscleGlow|\.muscle-glow/);
 });

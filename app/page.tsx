@@ -297,7 +297,6 @@ export default function Home() {
             className={`callout ${muscle.side} ${selectedId === muscle.id ? "active" : ""}`}
             style={{
               "--label-y": `${muscle.labelY}%`,
-              "--mobile-label-y": `${20 + muscle.labelY * .72}%`,
               "--tag": muscle.color,
             } as React.CSSProperties}
             onClick={() => choose(muscle.id)}
@@ -346,6 +345,31 @@ export default function Home() {
         </div>
 
         <a className="poster-scroll" href="#catalog"><span>↓</span> {words.scroll}</a>
+      </section>
+
+      <section className="mobile-muscle-directory" aria-label={lang === "ru" ? "Названия мышц на плакате" : "Muscle names on the poster"}>
+        <div className="mobile-directory-heading">
+          <div>
+            <span>{lang === "ru" ? "Легенда плаката" : "Poster legend"}</span>
+            <h2>{lang === "ru" ? "Мышцы текущего вида" : "Muscles in this view"}</h2>
+          </div>
+          <b>{String(posterMuscles.length).padStart(2, "0")}</b>
+        </div>
+        <div className="mobile-directory-grid">
+          {posterMuscles.map((muscle) => (
+            <button
+              key={`mobile-${poseKey}-${muscle.id}`}
+              className={selectedId === muscle.id ? "active" : ""}
+              style={{ "--tag": muscle.color } as React.CSSProperties}
+              onClick={() => choose(muscle.id)}
+              aria-pressed={selectedId === muscle.id}
+            >
+              <i />
+              <span>{displayName(muscle)}</span>
+              <small>{displayZone(muscle.zone)}</small>
+            </button>
+          ))}
+        </div>
       </section>
 
       <MuscleModel3D
